@@ -1,0 +1,15 @@
+{
+  "name": "json-xml-to-yaml-converter",
+  "version": "1.0.0",
+  "description": "Convert JSON/XML to YAML and show token savings",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "js-yaml": "^4.1.0",
+    "tiktoken": "^1.0.22",
+    "xml2js": "^0.6.2"
+  }
+}

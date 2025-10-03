@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON/XML to YAML Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #f5f5f5;
+        }
+        .header {
+            background: #0078d4;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            min-height: 500px;
+        }
+        .panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .panel h2 {
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 18px;
+        }
+        textarea {
+            flex: 1;
+            min-height: 400px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #0078d4;
+        }
+        .stats {
+            background: white;
+            padding: 20px;
+            border-top: 2px solid #ddd;
+        }
+        .stats h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .metric {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #0078d4;
+        }
+        .metric-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        .metric-change {
+            font-size: 14px;
+            color: #107c10;
+            margin-top: 5px;
+        }
+        .error {
+            color: #d13438;
+            background: #fde7e9;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: none;
+        }
+        .buttons {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            background: #0078d4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #106ebe;
+        }
+        .optimization-cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .optimization-card {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .optimization-card:hover {
+            border-color: #0078d4;
+            box-shadow: 0 2px 8px rgba(0,120,212,0.2);
+        }
+        .optimization-card.selected {
+            border-color: #0078d4;
+            background: #f0f8ff;
+        }
+        .optimization-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .optimization-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+        }
+        .optimization-badge {
+            background: #0078d4;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .optimization-description {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        .optimization-metrics {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .opt-metric {
+            background: #f9f9f9;
+            padding: 8px 12px;
+            border-radius: 4px;
+            flex: 1;
+            min-width: 120px;
+        }
+        .opt-metric-label {
+            font-size: 10px;
+            color: #666;
+            margin-bottom: 3px;
+        }
+        .opt-metric-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+        .opt-metric-change {
+            font-size: 11px;
+            color: #107c10;
+            font-weight: bold;
+            margin-top: 2px;
+        }
+        .key-mapping {
+            margin-top: 15px;
+            padding: 10px;
+            background: #fff4e6;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .key-mapping-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        .key-mapping-content {
+            font-family: 'Courier New', monospace;
+            color: #666;
+        }
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            background: #f5f5f5;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+        }
+        .tab:hover {
+            background: #e8e8e8;
+        }
+        .tab.active {
+            background: white;
+            color: #0078d4;
+            font-weight: bold;
+            border-bottom: 2px solid white;
+            margin-bottom: -2px;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .key-map-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .key-map-table th,
+        .key-map-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .key-map-table th {
+            background: #f5f5f5;
+            font-weight: bold;
+            color: #333;
+        }
+        .key-map-table td {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+        .key-map-table tr:hover {
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>JSON/XML to YAML Converter</h1>
+        <p>Optimize your data format and reduce token usage</p>
+    </div>
+
+    <div class="container">
+        <div class="panel">
+            <h2>Input (JSON/XML)</h2>
+            <textarea id="input" placeholder="Paste your JSON or XML here..."></textarea>
+            <div class="buttons">
+                <button onclick="convert()">Analyze Optimizations</button>
+                <button onclick="clearAll()">Clear</button>
+            </div>
+            <div class="error" id="error"></div>
+        </div>
+
+        <div class="panel">
+            <h2>Optimized Output</h2>
+            <textarea id="output" readonly placeholder="Select an optimization level below..."></textarea>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('optimizations')">Optimization Levels</button>
+            <button class="tab" onclick="switchTab('keyMapping')">Key Mapping</button>
+        </div>
+
+        <div id="optimizations-tab" class="tab-content active">
+            <h2 id="optimizationHeader">Optimization Levels (GPT-4/4.1/5.0 Token Counts)</h2>
+            <div id="optimizationLevels"></div>
+        </div>
+
+        <div id="keyMapping-tab" class="tab-content">
+            <h2>Key Mapping Dictionary</h2>
+            <p style="color: #666; margin-bottom: 15px;">Complete mapping of original keys to optimized short keys. Use this to decode shortened data.</p>
+            <div id="keyMappingTable"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentData = null;
+
+        function switchTab(tabName) {
+            // Remove active class from all tabs and tab contents
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            // Add active class to selected tab and content
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+        }
+
+        async function convert() {
+            const input = document.getElementById('input').value.trim();
+            const error = document.getElementById('error');
+
+            error.style.display = 'none';
+
+            if (!input) {
+                error.textContent = 'Please enter JSON or XML data';
+                error.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await fetch('/convert', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ input })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Conversion failed');
+                }
+
+                currentData = data;
+                displayOptimizations(data);
+                displayKeyMapping(data);
+
+            } catch (err) {
+                error.textContent = 'Error: ' + err.message;
+                error.style.display = 'block';
+            }
+        }
+
+        function displayKeyMapping(data) {
+            const container = document.getElementById('keyMappingTable');
+
+            // Find the aggressive optimization with key mappings
+            const aggressiveOpt = data.optimizations.find(opt => opt.keyMap && Object.keys(opt.keyMap).length > 0);
+
+            if (!aggressiveOpt || !aggressiveOpt.keyMap) {
+                container.innerHTML = '<p style="color: #999;">No key mappings available. Run an optimization with short keys first.</p>';
+                return;
+            }
+
+            const keyMap = aggressiveOpt.keyMap;
+            const entries = Object.entries(keyMap).sort((a, b) => a[0].localeCompare(b[0]));
+
+            let tableHTML = `
+                <table class="key-map-table">
+                    <thead>
+                        <tr>
+                            <th>Original Key</th>
+                            <th>Optimized Key</th>
+                            <th>Savings</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            entries.forEach(([original, shortened]) => {
+                const savings = original.length - shortened.length;
+                tableHTML += `
+                    <tr>
+                        <td>${original}</td>
+                        <td><strong>${shortened}</strong></td>
+                        <td style="color: #107c10;">-${savings} chars</td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += `
+                    </tbody>
+                </table>
+                <div style="margin-top: 15px; padding: 10px; background: #f0f8ff; border-radius: 4px; font-size: 13px;">
+                    <strong>Total keys optimized:</strong> ${entries.length} |
+                    <strong>Total character savings:</strong> ${entries.reduce((sum, [o, s]) => sum + (o.length - s.length), 0)} characters
+                </div>
+            `;
+
+            container.innerHTML = tableHTML;
+        }
+
+        function displayOptimizations(data) {
+            const container = document.getElementById('optimizationLevels');
+            const header = document.getElementById('optimizationHeader');
+
+            // Update header
+            if (data.optimizations && data.optimizations.length > 0) {
+                header.innerHTML = `Optimization Levels (GPT-4/4.1/5.0 Token Counts) - <span style="color: #666; font-size: 14px; font-weight: normal;">Each level builds on previous optimizations</span>`;
+            }
+
+            let cardsHTML = '<div class="optimization-cards-container">';
+
+            // Add original data card
+            cardsHTML += `
+                <div class="optimization-card" onclick="selectOptimization(this, ${JSON.stringify(data.original.content).replace(/"/g, '&quot;')})">
+                    <div class="optimization-header">
+                        <div class="optimization-title">Original (${data.inputType})</div>
+                        <div class="optimization-badge">BASELINE</div>
+                    </div>
+                    <div class="optimization-description">Your current data format</div>
+                    <div class="optimization-metrics">
+                        <div class="opt-metric">
+                            <div class="opt-metric-label">Tokens</div>
+                            <div class="opt-metric-value">${data.original.tokens.toLocaleString()}</div>
+                        </div>
+                        <div class="opt-metric">
+                            <div class="opt-metric-label">Characters</div>
+                            <div class="opt-metric-value">${data.original.chars.toLocaleString()}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Add optimization level cards
+            data.optimizations.forEach((opt, index) => {
+                const keyMappingPreview = opt.keyMap && Object.keys(opt.keyMap).length > 0
+                    ? `<div style="margin-top: 8px; font-size: 11px; color: #666;">${Object.keys(opt.keyMap).length} keys shortened</div>`
+                    : '';
+
+                // Build the "includes" description based on level
+                let includesDesc = '';
+                if (index === 0) {
+                    includesDesc = '<div style="margin-top: 8px; padding: 6px; background: #f0f8ff; border-radius: 3px; font-size: 11px; color: #0078d4;"><strong>Includes:</strong> Remove nulls/empty only</div><div style="margin-top: 6px; padding: 6px; background: #e6f7e6; border-radius: 3px; font-size: 11px; color: #107c10;"><strong>✓ API Safe:</strong> Works with existing JSON parsers. Good for synthesis layers, not raw APIs.</div>';
+                } else if (index === 1) {
+                    includesDesc = '<div style="margin-top: 8px; padding: 6px; background: #f0f8ff; border-radius: 3px; font-size: 11px; color: #0078d4;"><strong>Includes:</strong> Level 1 + YAML conversion</div><div style="margin-top: 6px; padding: 6px; background: #e6f7e6; border-radius: 3px; font-size: 11px; color: #107c10;"><strong>✓ LLM Safe:</strong> Better BPE token distribution. Optimal for production with GPT-4/5.</div>';
+                } else if (index === 2) {
+                    includesDesc = '<div style="margin-top: 8px; padding: 6px; background: #f0f8ff; border-radius: 3px; font-size: 11px; color: #0078d4;"><strong>Includes:</strong> Level 1 + Level 2 + Comments</div><div style="margin-top: 6px; padding: 6px; background: #e6f7e6; border-radius: 3px; font-size: 11px; color: #107c10;"><strong>✓ LLM Recommended:</strong> Enables Chain-of-Thought reasoning. Improves accuracy on complex tasks.</div>';
+                } else if (index === 3) {
+                    includesDesc = '<div style="margin-top: 8px; padding: 6px; background: #f0f8ff; border-radius: 3px; font-size: 11px; color: #0078d4;"><strong>Includes:</strong> Level 1 + Level 2 + Short keys</div><div style="margin-top: 6px; padding: 6px; background: #fff3cd; border-left: 3px solid #ffc107; border-radius: 3px; font-size: 11px; color: #856404;"><strong>⚠️ Warning:</strong> Short keys may reduce LLM context understanding. Best for storage/transmission, not direct LLM input. Provide key mapping to LLM.</div>';
+                }
+
+                cardsHTML += `
+                    <div class="optimization-card ${index === 0 ? 'selected' : ''}" onclick="selectOptimization(this, ${JSON.stringify(opt.content).replace(/"/g, '&quot;')})">
+                        <div class="optimization-header">
+                            <div class="optimization-title">Level ${index + 1}: ${opt.level}</div>
+                            <div class="optimization-badge">-${opt.tokensPercent}%</div>
+                        </div>
+                        <div class="optimization-description">${opt.description}</div>
+                        <div class="optimization-metrics">
+                            <div class="opt-metric">
+                                <div class="opt-metric-label">Tokens</div>
+                                <div class="opt-metric-value">${opt.tokens.toLocaleString()}</div>
+                                <div class="opt-metric-change">-${opt.tokensSaved.toLocaleString()}</div>
+                            </div>
+                            <div class="opt-metric">
+                                <div class="opt-metric-label">Characters</div>
+                                <div class="opt-metric-value">${opt.chars.toLocaleString()}</div>
+                                <div class="opt-metric-change">-${opt.charsSaved.toLocaleString()}</div>
+                            </div>
+                        </div>
+                        ${includesDesc}
+                        ${keyMappingPreview}
+                    </div>
+                `;
+            });
+
+            cardsHTML += '</div>';
+            container.innerHTML = cardsHTML;
+
+            // Auto-select first optimization
+            if (data.optimizations.length > 0) {
+                document.getElementById('output').value = data.optimizations[0].content;
+            }
+        }
+
+        function selectOptimization(card, content) {
+            // Remove selected class from all cards
+            document.querySelectorAll('.optimization-card').forEach(c => {
+                c.classList.remove('selected');
+            });
+
+            // Add selected class to clicked card
+            card.classList.add('selected');
+
+            // Decode HTML entities and update output
+            const textarea = document.createElement('textarea');
+            textarea.innerHTML = content;
+            document.getElementById('output').value = textarea.value;
+        }
+
+        function clearAll() {
+            document.getElementById('input').value = '';
+            document.getElementById('output').value = '';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('optimizationLevels').innerHTML = '';
+            document.getElementById('keyMappingTable').innerHTML = '';
+            currentData = null;
+        }
+    </script>
+    <footer style="background: #f5f5f5; padding: 20px; text-align: center; border-top: 1px solid #ddd; font-size: 12px; color: #666;">
+        <p style="margin-bottom: 10px;">
+            <strong>Research-backed optimization:</strong> Based on empirical studies showing YAML achieves
+            <strong>48% token reduction</strong> and <strong>25% character reduction</strong> vs JSON for LLMs.
+        </p>
+        <p style="margin-bottom: 5px;">
+            📄 <a href="https://arxiv.org/abs/2201.11903" target="_blank" style="color: #0078d4; text-decoration: none;">
+                "Chain-of-Thought Prompting Elicits Reasoning in Large Language Models"
+            </a> (Wei et al., 2022)
+        </p>
+        <p>
+            📊 Article: <a href="https://medium.com/@elyalivshitz/yaml-vs-json-which-is-more-efficient-for-language-models-5bdc45b6a70d" target="_blank" style="color: #0078d4; text-decoration: none;">
+                "YAML vs. JSON: Which Is More Efficient for Language Models?"
+            </a> by Elya Livshitz
+        </p>
+        <p style="margin-top: 10px; font-size: 11px; color: #999;">
+            Token counting uses OpenAI's tiktoken (GPT-4 encoding) for accurate GPT-4/4.1/5.0 compatibility
+        </p>
+    </footer>
+</body>
+</html>
