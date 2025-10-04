@@ -157,23 +157,6 @@ Paste your JSON or the provided Reza example:
 | API contracts | **Level 1 or none** | Preserve structure |
 | Synthesis layers | **Level 1** | Safe, minimal changes |
 
-## 🛠️ For Microsoft Engineers
-
-### Current Backend Optimization
-You mentioned removing whitespace from JSON. That's good, but **Level 2 (YAML)** gives you:
-- **8-10% additional savings** (on top of whitespace removal)
-- **Better LLM performance** (BPE token efficiency)
-- **Still readable** (unlike minified JSON)
-
-### Quick Win Strategy
-1. Start with **Level 2 (YAML)** on non-critical endpoints
-2. Measure token reduction on your actual data
-3. Present savings to stakeholders with this tool
-4. Gradually roll out to more services
-
-### Warning for Your Team
-**DO NOT use Level 4 (Short Keys) for LLM input without key mapping.** The LLM won't understand `lv` means "LicenseValidator".
-
 ## 📝 License
 
 MIT
